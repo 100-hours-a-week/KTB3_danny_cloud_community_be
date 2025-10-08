@@ -8,29 +8,22 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@IdClass(LikePK.class)
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Like {
+public class Image {
+    @Id
+    @Column(name = "image_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @EmbeddedId
-    private LikePK id;
-
-    @MapsId("userId")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @MapsId("postId")
+    @ManyToOne
     @JoinColumn(name = "post_id")
-    @ManyToOne(fetch = FetchType.LAZY)
     private Post post;
 
+    private String url;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
-
 }
