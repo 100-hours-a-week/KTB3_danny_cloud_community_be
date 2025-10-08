@@ -3,30 +3,34 @@ package com.ktb.community.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.mapping.ToOne;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
-public class Post {
+public class Comment {
     @Id
-    @Column(name = "post_id")
+    @Column(name = "comment_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
-    private String title;
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private Post post;
+
     @Column(nullable = false)
     private String content;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
+
 
 
 }
