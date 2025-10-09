@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/ktb_community?serverTimezone=UTC&useSSL=false
+    url: jdbc:mysql://localhost:3306/ktb_community?allowPublicKeyRetrieval=true&serverTimezone=UTC&useSSL=false
     username: root
     password: hs980407
     driver-class-name: com.mysql.cj.jdbc.Driver

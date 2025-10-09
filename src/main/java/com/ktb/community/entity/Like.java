@@ -8,7 +8,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@IdClass(LikePK.class)
 @Entity
 @Getter
 @Setter
