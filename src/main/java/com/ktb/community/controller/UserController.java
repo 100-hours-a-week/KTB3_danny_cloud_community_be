@@ -1,6 +1,8 @@
 package com.ktb.community.controller;
 
 import com.ktb.community.dto.request.EmailCheckRequestDto;
+import com.ktb.community.dto.response.ApiResponse;
+import com.ktb.community.dto.response.EmailAvailabilityResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -15,13 +17,15 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
     @PostMapping("/email")
-    ResponseEntity<Map<String, String>> checkEmail(@RequestBody @Valid EmailCheckRequestDto emailCheckDto, BindingResult bindingResult) {
+    ResponseEntity<ApiResponse<EmailAvailabilityResponseDto>> checkEmail(@RequestBody @Valid EmailCheckRequestDto emailCheckDto, BindingResult bindingResult) {
         // 검증에서 문제가 발생했다면
         if (bindingResult.hasErrors()) {
             String message = (bindingResult.getFieldError("email") != null) ? bindingResult.getFieldError("email").getDefaultMessage() : "Not a valid request";
 
-            return ResponseEntity.badRequest().body(Map.of("message", message));
+            return ResponseEntity.badRequest().body(ApiResponse.error(message));
+
         }
-        return ResponseEntity.accepted().body(Map.of("is_available", "true"));
+        return ResponseEntity.ok().body(ApiResponse.success(new EmailAvailabilityResponseDto(true)));
+
     }
 }
