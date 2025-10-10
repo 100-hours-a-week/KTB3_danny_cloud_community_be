@@ -19,7 +19,8 @@ public class UserService {
     }
 
     public Boolean checkValidityPassword(String password) {
-        String regex = "^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=[\\]{};':\"\\\\|,.<>/?]).{8,}$";
+        // 최소 8자, 소문자 1개 이상, 숫자 1개 이상, 특수문자 1개 이상
+        String regex = "^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$";
         return password.matches(regex);
     }
 }
