@@ -17,4 +17,9 @@ public class UserService {
     public Boolean checkDuplicateEmail(String email) {
         return this.userRepository.existsByEmail(email);
     }
+
+    public Boolean checkValidityPassword(String password) {
+        String regex = "^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=[\\]{};':\"\\\\|,.<>/?]).{8,}$";
+        return password.matches(regex);
+    }
 }

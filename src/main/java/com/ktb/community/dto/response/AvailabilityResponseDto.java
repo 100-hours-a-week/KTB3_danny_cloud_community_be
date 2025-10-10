@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailAvailabilityResponseDto {
+public class AvailabilityResponseDto {
     @JsonProperty("is_available")
     private Boolean isAvailable;
 }
