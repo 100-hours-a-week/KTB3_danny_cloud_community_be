@@ -1,11 +1,11 @@
 package com.ktb.community.service;
 
-import com.ktb.community.dto.response.CursorPageResponseDto;
-import com.ktb.community.dto.response.PostDetailResponseDto;
-import com.ktb.community.dto.response.PostResponseDto;
+import com.ktb.community.dto.response.*;
+import com.ktb.community.entity.Comment;
 import com.ktb.community.entity.Count;
 import com.ktb.community.entity.Image;
 import com.ktb.community.entity.Post;
+import com.ktb.community.repository.CommentRepository;
 import com.ktb.community.repository.CountRepository;
 import com.ktb.community.repository.ImageRepository;
 import com.ktb.community.repository.PostRepository;
@@ -22,12 +22,14 @@ public class PostService {
     private final PostRepository postRepository;
     private final CountRepository countRepository;
     private final ImageRepository imageRepository;
+    private final CommentRepository commentRepository;
 
     @Autowired
-    public PostService(PostRepository postRepository, CountRepository countRepository, ImageRepository imageRepository) {
+    public PostService(PostRepository postRepository, CountRepository countRepository, ImageRepository imageRepository, CommentRepository commentRepository) {
         this.postRepository = postRepository;
         this.countRepository = countRepository;
         this.imageRepository = imageRepository;
+        this.commentRepository = commentRepository;
     }
 
     public CursorPageResponseDto<PostResponseDto> getPostList(Long cursor, int size) {
@@ -106,6 +108,38 @@ public class PostService {
         }
 
         return postDetailResponseDto;
+    }
+
+
+    public CursorCommentResponseDto<CommentResponseDto> getCommentList(Long postId, Long cursor, int size) {
+        List<Comment> comments;
+        Pageable pageable = PageRequest.of(0, size + 1);
+        if (cursor == null) {
+            comments = this.commentRepository.findByPostIdAndDeletedAtIsNullOrderByCreatedAtDesc(postId, pageable);
+        } else {
+            comments = this.commentRepository.findByPostIdAndIdLessThanAndDeletedAtIsNullOrderByCreatedAtDesc(postId, cursor, pageable);
+        }
+
+        boolean hasNext = comments.size() > size;
+        if (hasNext) {
+            comments = comments.subList(0, size);
+        }
+
+        List<CommentResponseDto> commentList = comments.stream()
+                .map(comment -> {
+                    CommentResponseDto commentResponseDto = new CommentResponseDto();
+                    commentResponseDto.setId(comment.getId());
+                    commentResponseDto.setAuthor(comment.getUser().getNickname()); // 댓글 작성자
+                    commentResponseDto.setContent(comment.getContent());
+                    commentResponseDto.setCreatedAt(comment.getCreatedAt());
+                    // 인증이 추가되면 로직 변경하기
+                    commentResponseDto.setMine(false);
+                    return commentResponseDto;
+                })
+                .toList();
+
+        Long nextCursor = !commentList.isEmpty() ? commentList.getLast().getId() : null;
+        return new CursorCommentResponseDto<>(commentList, nextCursor, hasNext);
     }
 
 }
