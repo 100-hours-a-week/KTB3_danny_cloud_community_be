@@ -7,6 +7,7 @@ import com.ktb.community.entity.User;
 import com.ktb.community.jwt.JwtUtil;
 import com.ktb.community.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +29,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
+
     }
 
     public Long signUpUser(SignUpRequestDto signUpRequestDto) throws Exception {
@@ -63,7 +65,8 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
         String refreshToken = jwtUtil.generateRefreshToken(user.getId());
 
-        return new LoginResponseDto(accessToken,refreshToken,user.getId());
+
+        return new LoginResponseDto(accessToken, refreshToken, user.getId());
 
     }
 }
