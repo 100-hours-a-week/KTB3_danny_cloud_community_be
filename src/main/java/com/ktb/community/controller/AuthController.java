@@ -1,8 +1,10 @@
 package com.ktb.community.controller;
 
+import com.ktb.community.dto.request.LoginRequestDto;
 import com.ktb.community.dto.request.SignUpRequestDto;
 import com.ktb.community.dto.response.ApiResponseDto;
 import com.ktb.community.dto.response.CreateUserResponseDto;
+import com.ktb.community.dto.response.LoginResponseDto;
 import com.ktb.community.service.AuthService;
 import com.ktb.community.service.UserService;
 import jakarta.validation.Valid;
@@ -51,5 +53,15 @@ public class AuthController {
             throw e;
         }
 
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponseDto<?>> login(@RequestBody @Valid LoginRequestDto loginRequestDto) {
+        try {
+            LoginResponseDto response = this.authService.login(loginRequestDto);
+            return ResponseEntity.ok(ApiResponseDto.success(response));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseDto.error("Invalide email or password"));
+        }
     }
 }
