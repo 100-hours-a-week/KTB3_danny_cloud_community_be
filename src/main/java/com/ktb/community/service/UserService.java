@@ -1,0 +1,26 @@
+package com.ktb.community.service;
+
+import com.ktb.community.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public Boolean checkDuplicateEmail(String email) {
+        return this.userRepository.existsByEmail(email);
+    }
+
+    public Boolean checkValidityPassword(String password) {
+        // 최소 8자, 소문자 1개 이상, 숫자 1개 이상, 특수문자 1개 이상
+        String regex = "^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$";
+        return password.matches(regex);
+    }
+}
