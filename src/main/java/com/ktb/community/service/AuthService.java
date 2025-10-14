@@ -3,6 +3,7 @@ package com.ktb.community.service;
 import com.ktb.community.dto.request.LoginRequestDto;
 import com.ktb.community.dto.request.SignUpRequestDto;
 import com.ktb.community.dto.response.LoginResponseDto;
+import com.ktb.community.entity.Refresh;
 import com.ktb.community.entity.User;
 import com.ktb.community.jwt.JwtUtil;
 import com.ktb.community.repository.UserRepository;
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class AuthService {
     private final UserRepository userRepository;
@@ -21,15 +24,16 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final RefreshTokenService refreshTokenService;
 
     @Autowired
-    public AuthService(UserRepository userRepository, UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
+    public AuthService(UserRepository userRepository, UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, AuthenticationManager authenticationManager, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
-
+        this.refreshTokenService = refreshTokenService;
     }
 
     public Long signUpUser(SignUpRequestDto signUpRequestDto) throws Exception {
@@ -60,13 +64,20 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
         );
 
+
         User user = this.userRepository.findByEmail(loginRequestDto.getEmail()).orElseThrow(() -> new RuntimeException("Users not found"));
+
+        // 다중 로그인을 사용하려면 추후 삭제하기
+        this.refreshTokenService.removeAllRefreshToken(user.getId());
 
         String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
         String refreshToken = jwtUtil.generateRefreshToken(user.getId());
 
+        LocalDateTime expirationAt = this.jwtUtil.getExpirationFromToken(refreshToken);
+        this.refreshTokenService.saveRefreshToken(refreshToken, user, expirationAt);
 
         return new LoginResponseDto(accessToken, refreshToken, user.getId());
 
     }
+
 }

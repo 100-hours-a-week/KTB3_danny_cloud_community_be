@@ -103,7 +103,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            handleTokenException(response, "The token is expired");
+            handleTokenException(response, "The token is expired please reissue Access Token");
         }
         filterChain.doFilter(request, response);
 

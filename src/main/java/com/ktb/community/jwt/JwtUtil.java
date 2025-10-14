@@ -2,6 +2,9 @@ package com.ktb.community.jwt;
 
 
 import com.ktb.community.dto.request.LoginRequestDto;
+import com.ktb.community.entity.Refresh;
+import com.ktb.community.repository.RefreshRepository;
+import com.ktb.community.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 
@@ -24,7 +28,8 @@ public class JwtUtil {
 
     public JwtUtil(@Value("${jwt.secret}") String secretKey,
                    @Value("${jwt.expiration.access}") long accessTokenExpiration,
-                   @Value("${jwt.expiration.refresh}") long refreshTokenExpiration) {
+                   @Value("${jwt.expiration.refresh}") long refreshTokenExpiration, RefreshRepository refreshRepository, UserRepository userRepository) {
+
         byte[] bytes = Base64.getDecoder().decode(secretKey);
         this.key = Keys.hmacShaKeyFor(bytes);
         this.accessTokenExpiration = accessTokenExpiration;
@@ -85,5 +90,16 @@ public class JwtUtil {
         }
 
         return false;
+    }
+
+    public LocalDateTime getExpirationFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(this.key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        Date expiration = claims.getExpiration();
+        return expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }
