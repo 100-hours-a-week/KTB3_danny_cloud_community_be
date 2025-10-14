@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Date;
 
 @Slf4j
@@ -24,7 +25,8 @@ public class JwtUtil {
     public JwtUtil(@Value("${jwt.secret}") String secretKey,
                    @Value("${jwt.expiration.access}") long accessTokenExpiration,
                    @Value("${jwt.expiration.refresh}") long refreshTokenExpiration) {
-        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
+        byte[] bytes = Base64.getDecoder().decode(secretKey);
+        this.key = Keys.hmacShaKeyFor(bytes);
         this.accessTokenExpiration = accessTokenExpiration;
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
