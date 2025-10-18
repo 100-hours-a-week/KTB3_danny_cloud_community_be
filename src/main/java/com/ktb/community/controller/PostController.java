@@ -1,10 +1,13 @@
 package com.ktb.community.controller;
 
+import com.ktb.community.dto.request.CreatePostRequestDto;
 import com.ktb.community.dto.response.*;
 import com.ktb.community.service.PostService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -54,12 +57,23 @@ public class PostController {
     public ResponseEntity<ApiResponseDto<?>> getComment(@PathVariable Long postId, @RequestParam(required = false) Long cursor,
                                                         @RequestParam(defaultValue = "5") int size) {
         try {
-            CursorCommentResponseDto<CommentResponseDto> cursorCommentResponseDto = this.postService.getCommentList(postId, cursor,size);
+            CursorCommentResponseDto<CommentResponseDto> cursorCommentResponseDto = this.postService.getCommentList(postId, cursor, size);
             return ResponseEntity.ok().body(ApiResponseDto.success(cursorCommentResponseDto));
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(ApiResponseDto.error("Internal server error occured"));
         }
     }
+
+    @PostMapping()
+    public ResponseEntity<ApiResponseDto<CreatePostResponseDto>> createPost(@RequestBody @Valid CreatePostRequestDto createPostRequestDto, Authentication authentication) {
+        try {
+            CreatePostResponseDto createPostResponseDto = this.postService.createPost(createPostRequestDto, authentication.getName());
+            return ResponseEntity.ok().body(ApiResponseDto.success(createPostResponseDto));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponseDto.error("Internal server error occured"));
+        }
+    }
+
 
 }

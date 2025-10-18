@@ -1,0 +1,25 @@
+package com.ktb.community.dto.request;
+
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Null;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class CreatePostRequestDto {
+    @NotBlank
+    String title;
+    @NotBlank
+    String content;
+
+    List<String> images = new ArrayList<>();
+
+
+}

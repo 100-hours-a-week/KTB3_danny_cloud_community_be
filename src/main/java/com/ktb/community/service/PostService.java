@@ -1,35 +1,61 @@
 package com.ktb.community.service;
 
+import com.ktb.community.dto.request.CreatePostRequestDto;
 import com.ktb.community.dto.response.*;
-import com.ktb.community.entity.Comment;
-import com.ktb.community.entity.Count;
-import com.ktb.community.entity.Image;
-import com.ktb.community.entity.Post;
-import com.ktb.community.repository.CommentRepository;
-import com.ktb.community.repository.CountRepository;
-import com.ktb.community.repository.ImageRepository;
-import com.ktb.community.repository.PostRepository;
+import com.ktb.community.entity.*;
+import com.ktb.community.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class PostService {
     private final PostRepository postRepository;
     private final CountRepository countRepository;
     private final ImageRepository imageRepository;
     private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public PostService(PostRepository postRepository, CountRepository countRepository, ImageRepository imageRepository, CommentRepository commentRepository) {
+    public PostService(PostRepository postRepository, CountRepository countRepository, ImageRepository imageRepository, CommentRepository commentRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
         this.countRepository = countRepository;
         this.imageRepository = imageRepository;
         this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
+    }
+
+    @Transactional
+    public CreatePostResponseDto createPost(CreatePostRequestDto createPostRequestDto, String email) {
+        Post post = new Post();
+        post.setTitle(createPostRequestDto.getTitle());
+        post.setContent(createPostRequestDto.getContent());
+        User user = this.userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Users not found"));
+        post.setUser(user);
+
+        Post savedPost = this.postRepository.save(post);
+
+        if (!createPostRequestDto.getImages().isEmpty()) {
+            List<String> imageUrls = createPostRequestDto.getImages();
+            List<Image> images = new ArrayList<>();
+            for (int i = 0; i < createPostRequestDto.getImages().size(); i++) {
+                Image img = new Image();
+                img.setUrl(imageUrls.get(i));
+                img.setPost(savedPost);
+                img.setDisplayOrder(i);
+                images.add(img);
+            }
+            this.imageRepository.saveAll(images);
+        }
+
+        return new CreatePostResponseDto(savedPost.getId());
     }
 
     public CursorPageResponseDto<PostResponseDto> getPostList(Long cursor, int size) {
@@ -89,7 +115,7 @@ public class PostService {
         postDetailResponseDto.setContent(post.getContent());
         postDetailResponseDto.setAuthor(post.getUser().getNickname());
 
-        List<String> images = this.imageRepository.findByPostIdAndDeletedAtIsNull(post.getId())
+        List<String> images = this.imageRepository.findByPostIdAndDeletedAtIsNullOrderByDisplayOrderAsc(post.getId())
                 .stream()
                 .map(image -> {
                     return image.getUrl();
