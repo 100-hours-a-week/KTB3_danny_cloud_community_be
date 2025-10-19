@@ -7,6 +7,7 @@ import com.ktb.community.entity.Refresh;
 import com.ktb.community.entity.User;
 import com.ktb.community.jwt.JwtUtil;
 import com.ktb.community.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -59,7 +60,8 @@ public class AuthService {
         return this.userRepository.save(user).getId();
     }
 
-    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+    @Transactional
+    public LoginResponseDto  login(LoginRequestDto loginRequestDto) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
         );
