@@ -78,24 +78,18 @@ public class PostService {
 
         List<PostResponseDto> postContent = posts.stream()
                 .map(post -> {
-                    PostResponseDto postResponseDto = new PostResponseDto();
-                    postResponseDto.setId(post.getId());
-                    postResponseDto.setTitle(post.getTitle());
-                    postResponseDto.setContent(post.getContent());
-                    postResponseDto.setAuthor(post.getUser().getNickname());
-                    postResponseDto.setCreateAt(post.getCreatedAt());
-
                     Count count = this.countRepository.findByPostId(post.getId()).orElse(null);
-                    if (count != null) {
-                        postResponseDto.setViews(count.getViewCount());
-                        postResponseDto.setLikes(count.getLikeCount());
-                        postResponseDto.setComments(count.getCommentCount());
-                    } else {
-                        postResponseDto.setViews(0L);
-                        postResponseDto.setLikes(0L);
-                        postResponseDto.setComments(0L);
-                    }
-                    return postResponseDto;
+
+                    return PostResponseDto.builder()
+                            .id(post.getId())
+                            .title(post.getTitle())
+                            .content(post.getContent())
+                            .author(post.getUser().getNickname())
+                            .createAt(post.getCreatedAt())
+                            .views(count != null ? count.getViewCount() : 0L)
+                            .likes(count != null ? count.getLikeCount() : 0L)
+                            .comments(count != null ? count.getCommentCount() : 0L)
+                            .build();
                 }).collect(Collectors.toList());
         Long nextCursor = !postContent.isEmpty() ? postContent.getLast().getId() : null;
 
@@ -109,31 +103,23 @@ public class PostService {
             throw new IllegalArgumentException("The post does not exist.");
         }
 
-        PostDetailResponseDto postDetailResponseDto = new PostDetailResponseDto();
-        postDetailResponseDto.setId(post.getId());
-        postDetailResponseDto.setTitle(post.getTitle());
-        postDetailResponseDto.setContent(post.getContent());
-        postDetailResponseDto.setAuthor(post.getUser().getNickname());
-
         List<String> images = this.imageRepository.findByPostIdAndDeletedAtIsNullOrderByDisplayOrderAsc(post.getId())
                 .stream()
-                .map(image -> {
-                    return image.getUrl();
-                }).toList();
-        postDetailResponseDto.setImages(images);
+                .map(Image::getUrl)
+                .toList();
 
         Count count = this.countRepository.findByPostId(post.getId()).orElse(null);
-        if (count != null) {
-            postDetailResponseDto.setViews(count.getViewCount());
-            postDetailResponseDto.setLikes(count.getLikeCount());
-            postDetailResponseDto.setComments(count.getCommentCount());
-        } else {
-            postDetailResponseDto.setViews(0L);
-            postDetailResponseDto.setLikes(0L);
-            postDetailResponseDto.setComments(0L);
-        }
 
-        return postDetailResponseDto;
+        return PostDetailResponseDto.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .author(post.getUser().getNickname())
+                .images(images)
+                .views(count != null ? count.getViewCount() : 0L)
+                .likes(count != null ? count.getLikeCount() : 0L)
+                .comments(count != null ? count.getCommentCount() : 0L)
+                .build();
     }
 
 
@@ -152,16 +138,13 @@ public class PostService {
         }
 
         List<CommentResponseDto> commentList = comments.stream()
-                .map(comment -> {
-                    CommentResponseDto commentResponseDto = new CommentResponseDto();
-                    commentResponseDto.setId(comment.getId());
-                    commentResponseDto.setAuthor(comment.getUser().getNickname()); // 댓글 작성자
-                    commentResponseDto.setContent(comment.getContent());
-                    commentResponseDto.setCreatedAt(comment.getCreatedAt());
-                    // 인증이 추가되면 로직 변경하기
-                    commentResponseDto.setMine(false);
-                    return commentResponseDto;
-                })
+                .map(comment -> CommentResponseDto.builder()
+                        .id(comment.getId())
+                        .author(comment.getUser().getNickname())
+                        .content(comment.getContent())
+                        .createdAt(comment.getCreatedAt())
+                        .isMine(false) // 인증이 추가되면 로직 변경하기
+                        .build())
                 .toList();
 
         Long nextCursor = !commentList.isEmpty() ? commentList.getLast().getId() : null;

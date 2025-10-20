@@ -1,6 +1,7 @@
 package com.ktb.community.controller;
 
 import com.ktb.community.dto.request.CreatePostRequestDto;
+import com.ktb.community.dto.request.ModifyPostRequestDto;
 import com.ktb.community.dto.response.*;
 import com.ktb.community.service.PostService;
 import jakarta.validation.Valid;
@@ -46,6 +47,12 @@ public class PostController {
     public ResponseEntity<ApiResponseDto<CreatePostResponseDto>> createPost(@RequestBody @Valid CreatePostRequestDto createPostRequestDto, Authentication authentication) {
         CreatePostResponseDto createPostResponseDto = this.postService.createPost(createPostRequestDto, authentication.getName());
         return ResponseEntity.ok().body(ApiResponseDto.success(createPostResponseDto));
+    }
+
+    @PatchMapping("/{postId}")
+    public ResponseEntity<ApiResponseDto<?>> modifyPost(@PathVariable Long postId, @RequestBody ModifyPostRequestDto modifyPostRequestDto) {
+        // TODO: Implement post modification logic
+        return ResponseEntity.ok().body(ApiResponseDto.success("Post modification not yet implemented"));
     }
 
 
