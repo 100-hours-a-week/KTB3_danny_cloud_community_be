@@ -3,6 +3,8 @@ package com.ktb.community.service;
 import com.ktb.community.dto.response.ReIssueRefreshTokenDto;
 import com.ktb.community.entity.Refresh;
 import com.ktb.community.entity.User;
+import com.ktb.community.exception.custom.InvalidRefreshTokenException;
+import com.ktb.community.exception.custom.UserNotFoundException;
 import com.ktb.community.jwt.JwtUtil;
 import com.ktb.community.repository.RefreshRepository;
 import com.ktb.community.repository.UserRepository;
@@ -36,7 +38,7 @@ public class RefreshTokenService {
     }
 
     public Refresh findByToken(String token) {
-        return refreshRepository.findByRefreshToken(token).orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+        return refreshRepository.findByRefreshToken(token).orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
     }
 
     public Boolean existByToken(String token) {
@@ -44,21 +46,17 @@ public class RefreshTokenService {
     }
 
     public Refresh checkExistRefreshToken(String token) {
-        try {
-            return findByToken(token);
-        } catch (Exception e) {
-            throw new RuntimeException("Not a valid token");
-        }
+        return findByToken(token);
     }
 
     public String reIssueAccessToken(String refreshToken) {
         if (!jwtUtil.validateToken(refreshToken)) {
-            throw new RuntimeException("Invalid or expired refresh token");
+            throw new InvalidRefreshTokenException("Invalid or expired refresh token");
         }
         Refresh refresh = checkExistRefreshToken(refreshToken);
 
         if (refresh.getExpirationAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token expired");
+            throw new InvalidRefreshTokenException("Refresh token expired");
         }
 
         return this.jwtUtil.generateAccessToken(refresh.getUser().getId(), refresh.getUser().getEmail());
@@ -67,15 +65,15 @@ public class RefreshTokenService {
     // 무조건 refresh token을 재갱신 해주기
     @Transactional
     public ReIssueRefreshTokenDto reIssueRefreshToken(String refreshToken) {
+
         if (!this.existByToken(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
         Refresh refresh = checkExistRefreshToken(refreshToken);
 
         String newRefreshToken = this.jwtUtil.generateRefreshToken(refresh.getUser().getId());
-        User user = this.userRepository.findById(refresh.getUser().getId()).orElseThrow(() -> new RuntimeException("Not found user")
-        );
+        User user = this.userRepository.findById(refresh.getUser().getId()).orElseThrow(() -> new UserNotFoundException("User not found"));
         LocalDateTime expiredAt = this.jwtUtil.getExpirationFromToken(newRefreshToken);
         this.removeRefreshToken(refreshToken);
         this.saveRefreshToken(newRefreshToken, user, expiredAt);

@@ -25,54 +25,27 @@ public class PostController {
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "20") int size
     ) {
-        try {
-            CursorPageResponseDto<PostResponseDto> result = postService.getPostList(cursor, size);
-            return ResponseEntity.ok(ApiResponseDto.success(result));
-
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body(ApiResponseDto.error("Internal server error occured"));
-        }
+        CursorPageResponseDto<PostResponseDto> result = postService.getPostList(cursor, size);
+        return ResponseEntity.ok(ApiResponseDto.success(result));
     }
 
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> getPostDetail(@PathVariable @Positive Long postId) {
-
-        try {
-            PostDetailResponseDto post = this.postService.getPostContent(postId);
-            return ResponseEntity.ok().body(ApiResponseDto.success(post));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404)
-                    .body(ApiResponseDto.error(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body(ApiResponseDto.error("Internal server error occured"));
-        }
-
-
+        PostDetailResponseDto post = this.postService.getPostContent(postId);
+        return ResponseEntity.ok().body(ApiResponseDto.success(post));
     }
 
     @GetMapping("/{postId}/comments")
     public ResponseEntity<ApiResponseDto<?>> getComment(@PathVariable Long postId, @RequestParam(required = false) Long cursor,
                                                         @RequestParam(defaultValue = "5") int size) {
-        try {
-            CursorCommentResponseDto<CommentResponseDto> cursorCommentResponseDto = this.postService.getCommentList(postId, cursor, size);
-            return ResponseEntity.ok().body(ApiResponseDto.success(cursorCommentResponseDto));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body(ApiResponseDto.error("Internal server error occured"));
-        }
+        CursorCommentResponseDto<CommentResponseDto> cursorCommentResponseDto = this.postService.getCommentList(postId, cursor, size);
+        return ResponseEntity.ok().body(ApiResponseDto.success(cursorCommentResponseDto));
     }
 
     @PostMapping()
     public ResponseEntity<ApiResponseDto<CreatePostResponseDto>> createPost(@RequestBody @Valid CreatePostRequestDto createPostRequestDto, Authentication authentication) {
-        try {
-            CreatePostResponseDto createPostResponseDto = this.postService.createPost(createPostRequestDto, authentication.getName());
-            return ResponseEntity.ok().body(ApiResponseDto.success(createPostResponseDto));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(ApiResponseDto.error("Internal server error occured"));
-        }
+        CreatePostResponseDto createPostResponseDto = this.postService.createPost(createPostRequestDto, authentication.getName());
+        return ResponseEntity.ok().body(ApiResponseDto.success(createPostResponseDto));
     }
 
 

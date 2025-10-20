@@ -30,16 +30,11 @@ public class UserController {
         // 검증에서 문제가 발생했다면
         if (bindingResult.hasErrors()) {
             String message = (bindingResult.getFieldError("email") != null) ? bindingResult.getFieldError("email").getDefaultMessage() : "Not a valid request";
-
             return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
+        }
 
-        }
-        try {
-            AvailabilityResponseDto availabilityResponseDto = this.userService.checkDuplicateEmail(emailCheckDto.getEmail());
-            return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(ApiResponseDto.error("Internal server error occurred"));
-        }
+        AvailabilityResponseDto availabilityResponseDto = this.userService.checkDuplicateEmail(emailCheckDto.getEmail());
+        return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
     }
 
     @PostMapping("/password")
@@ -48,15 +43,10 @@ public class UserController {
             String message = (bindingResult.getFieldError("password") != null)
                     ? bindingResult.getFieldError("password").getDefaultMessage()
                     : "Not a valid request";
-
             return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
         }
 
-        try {
-            AvailabilityResponseDto availabilityResponseDto = this.userService.checkValidityPassword(passwordCheckRequestDto.getPassword());
-            return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(ApiResponseDto.error("Internal server error occurred"));
-        }
+        AvailabilityResponseDto availabilityResponseDto = this.userService.checkValidityPassword(passwordCheckRequestDto.getPassword());
+        return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
     }
 }

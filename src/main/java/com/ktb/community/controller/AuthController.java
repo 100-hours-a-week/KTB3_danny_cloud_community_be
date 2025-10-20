@@ -40,50 +40,39 @@ public class AuthController {
 
 
     @PostMapping()
-    ResponseEntity<ApiResponseDto<?>> signUp(@RequestBody @Valid SignUpRequestDto signUpRequestDto, BindingResult bindingResult) throws Exception {
+    ResponseEntity<ApiResponseDto<?>> signUp(@RequestBody @Valid SignUpRequestDto signUpRequestDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             // 모든 필드를 확인하는 로직이 너무 길어 하나로 통합해서 유효하지 않은 필드를 가졌음을 표현
             String message = "Not valid form";
             return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
         }
 
-        try {
-            Long userId = this.authService.signUpUser(signUpRequestDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(new CreateUserResponseDto(userId)));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseDto.error(e.getMessage()));
-        } catch (Exception e) {
-            throw e;
-        }
-
+        Long userId = this.authService.signUpUser(signUpRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(new CreateUserResponseDto(userId)));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDto<?>> login(
             @RequestBody @Valid LoginRequestDto loginRequestDto,
             HttpServletResponse response) {
-        try {
-            LoginResponseDto loginResponse = this.authService.login(loginRequestDto);
+        LoginResponseDto loginResponse = this.authService.login(loginRequestDto);
 
-            // Refresh Token을 HttpOnly 쿠키로 설정
-            Cookie refreshTokenCookie = new Cookie("refresh_token", loginResponse.getRefreshToken());
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(false);
-            refreshTokenCookie.setPath("/");
-            refreshTokenCookie.setMaxAge((int) (refreshTokenExpiration / 1000)); // application.yml 값 사용 (밀리초 → 초)
-            response.addCookie(refreshTokenCookie);
+        // Refresh Token을 HttpOnly 쿠키로 설정
+        Cookie refreshTokenCookie = new Cookie("refresh_token", loginResponse.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge((int) (refreshTokenExpiration / 1000)); // application.yml 값 사용 (밀리초 → 초)
+        response.addCookie(refreshTokenCookie);
 
-            // 응답 DTO에서는 refreshToken을 null로 설정 (보안)
-            LoginResponseDto responseDto = new LoginResponseDto(
-                    loginResponse.getAccessToken(),
-                    null,
-                    loginResponse.getUserId()
-            );
+        // 응답 DTO에서는 refreshToken을 null로 설정 (보안)
+        LoginResponseDto responseDto = new LoginResponseDto(
+                loginResponse.getAccessToken(),
+                null,
+                loginResponse.getUserId()
+        );
 
-            return ResponseEntity.ok(ApiResponseDto.success(responseDto));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponseDto.error("Invalide email or password"));
-        }
+        return ResponseEntity.ok(ApiResponseDto.success(responseDto));
     }
 
     @PostMapping("/logout")
@@ -104,27 +93,22 @@ public class AuthController {
     public ResponseEntity<ApiResponseDto<?>> refresh(
             @CookieValue("refresh_token") String refreshToken,
             HttpServletResponse response) {
-        try {
-            // 새 refresh token 받아오기
-            var reIssued = this.refreshTokenService.reIssueRefreshToken(refreshToken);
+        // 새 refresh token 받아오기
+        var reIssued = this.refreshTokenService.reIssueRefreshToken(refreshToken);
 
-            // 새 refresh token을 쿠키에 설정
-            Cookie newRefreshTokenCookie = new Cookie("refresh_token", reIssued.getRefreshToken());
-            newRefreshTokenCookie.setHttpOnly(true);
-            newRefreshTokenCookie.setSecure(false);
-            newRefreshTokenCookie.setPath("/");
-            newRefreshTokenCookie.setMaxAge((int) (refreshTokenExpiration / 1000));
-            response.addCookie(newRefreshTokenCookie);
+        // 새 refresh token을 쿠키에 설정
+        Cookie newRefreshTokenCookie = new Cookie("refresh_token", reIssued.getRefreshToken());
+        newRefreshTokenCookie.setHttpOnly(true);
+        newRefreshTokenCookie.setSecure(false);
+        newRefreshTokenCookie.setPath("/");
+        newRefreshTokenCookie.setMaxAge((int) (refreshTokenExpiration / 1000));
+        response.addCookie(newRefreshTokenCookie);
 
-            // 새 access token도 함께 발급
-            String newAccessToken = this.refreshTokenService.reIssueAccessToken(reIssued.getRefreshToken());
+        // 새 access token도 함께 발급
+        String newAccessToken = this.refreshTokenService.reIssueAccessToken(reIssued.getRefreshToken());
 
-            return ResponseEntity.ok().body(ApiResponseDto.success(
-                new LoginResponseDto(newAccessToken, null, null)
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponseDto.error("Invalid refresh token"));
-        }
+        return ResponseEntity.ok().body(ApiResponseDto.success(
+            new LoginResponseDto(newAccessToken, null, null)
+        ));
     }
 }

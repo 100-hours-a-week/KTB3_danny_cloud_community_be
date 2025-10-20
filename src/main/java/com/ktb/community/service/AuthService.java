@@ -6,6 +6,9 @@ import com.ktb.community.dto.response.ApiResponseDto;
 import com.ktb.community.dto.response.LoginResponseDto;
 import com.ktb.community.entity.Refresh;
 import com.ktb.community.entity.User;
+import com.ktb.community.exception.custom.DuplicateEmailException;
+import com.ktb.community.exception.custom.InvalidCredentialsException;
+import com.ktb.community.exception.custom.UserNotFoundException;
 import com.ktb.community.jwt.JwtUtil;
 import com.ktb.community.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -39,8 +42,7 @@ public class AuthService {
         this.refreshTokenService = refreshTokenService;
     }
 
-    public Long signUpUser(SignUpRequestDto signUpRequestDto) throws Exception {
-
+    public Long signUpUser(SignUpRequestDto signUpRequestDto) {
         // 비밀번호와 비밀번호 확인이 동일한지 검사
         if (!signUpRequestDto.getPassword().equals(signUpRequestDto.getPasswordConfirm())) {
             throw new IllegalArgumentException("Password and Password Confirm is not same.");
@@ -48,16 +50,16 @@ public class AuthService {
 
         // email이 중복되는지 확인
         if (this.userRepository.existsByEmail(signUpRequestDto.getEmail())) {
-            throw new IllegalArgumentException("this email already exists");
+            throw new DuplicateEmailException("This email already exists");
         }
 
         if (this.userRepository.existsByNickname(signUpRequestDto.getNickname())) {
-            throw new IllegalArgumentException("this nickname is already exist");
+            throw new IllegalArgumentException("This nickname is already exist");
         }
 
         User user = new User();
         user.setEmail(signUpRequestDto.getEmail());
-        if (!this.userService.checkValidityPassword(signUpRequestDto.getPassword())) {
+        if (!this.userService.checkValidityPassword(signUpRequestDto.getPassword()).getIsAvailable()) {
             throw new IllegalArgumentException("Password does not meet requirements");
         }
         // bcyrpt로 암호화 추가하기
@@ -74,8 +76,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
         );
 
-
-        User user = this.userRepository.findByEmail(loginRequestDto.getEmail()).orElseThrow(() -> new RuntimeException("Users not found"));
+        User user = this.userRepository.findByEmail(loginRequestDto.getEmail()).orElseThrow(() -> new UserNotFoundException("User not found"));
 
         // 다중 로그인을 사용하려면 추후 삭제하기
         this.refreshTokenService.removeAllRefreshToken(user.getId());
@@ -87,7 +88,6 @@ public class AuthService {
         this.refreshTokenService.saveRefreshToken(refreshToken, user, expirationAt);
 
         return new LoginResponseDto(accessToken, refreshToken, user.getId());
-
     }
 
 }
