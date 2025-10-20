@@ -51,8 +51,8 @@ public class PostController {
 
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponseDto<?>> modifyPost(@PathVariable Long postId, @RequestBody ModifyPostRequestDto modifyPostRequestDto) {
-        // TODO: Implement post modification logic
-        return ResponseEntity.ok().body(ApiResponseDto.success("Post modification not yet implemented"));
+        CreatePostResponseDto modifiedPost = this.postService.modifyPostContent(postId, modifyPostRequestDto);
+        return ResponseEntity.ok().body(ApiResponseDto.success(modifiedPost));
     }
 
 

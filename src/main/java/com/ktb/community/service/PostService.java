@@ -1,8 +1,10 @@
 package com.ktb.community.service;
 
 import com.ktb.community.dto.request.CreatePostRequestDto;
+import com.ktb.community.dto.request.ModifyPostRequestDto;
 import com.ktb.community.dto.response.*;
 import com.ktb.community.entity.*;
+import com.ktb.community.exception.custom.PostNotFoundException;
 import com.ktb.community.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -151,5 +153,26 @@ public class PostService {
         return new CursorCommentResponseDto<>(commentList, nextCursor, hasNext);
     }
 
+    @Transactional
+    public CreatePostResponseDto modifyPostContent(Long postId, ModifyPostRequestDto modifyPostRequestDto) {
+        Post post = this.postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException("Post not found"));
+
+        // null이 아닌 필드만 업데이트
+        if (modifyPostRequestDto.getTitle() != null) {
+            post.setTitle(modifyPostRequestDto.getTitle());
+        }
+        if (modifyPostRequestDto.getContent() != null) {
+            post.setContent(modifyPostRequestDto.getContent());
+        }
+
+        // TODO : 이미지 변경 로직은 추후 추가하기
+        // if (modifyPostRequestDto.getImages() != null) {
+        //     // 이미지 업데이트 로직
+        // }
+
+        // @Transactional에 의해 자동으로 UPDATE 쿼리 실행 (Dirty Checking)
+        return new CreatePostResponseDto(post.getId());
+    }
 }
 
