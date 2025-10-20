@@ -34,27 +34,29 @@ public class UserController {
             return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
 
         }
-        if (this.userService.checkDuplicateEmail(emailCheckDto.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseDto.error("This email already exists. Please enter a different email.\""));
+        try {
+            AvailabilityResponseDto availabilityResponseDto = this.userService.checkDuplicateEmail(emailCheckDto.getEmail());
+            return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponseDto.error("Internal server error occurred"));
         }
-
-        return ResponseEntity.ok().body(ApiResponseDto.success(new AvailabilityResponseDto(true)));
     }
 
     @PostMapping("/password")
     ResponseEntity<ApiResponseDto<AvailabilityResponseDto>> checkValidityPassword(@RequestBody @Valid PasswordCheckRequestDto passwordCheckRequestDto, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             String message = (bindingResult.getFieldError("password") != null)
                     ? bindingResult.getFieldError("password").getDefaultMessage()
                     : "Not a valid request";
 
             return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
-
         }
 
-        if (this.userService.checkValidityPassword(passwordCheckRequestDto.getPassword())) {
-            return ResponseEntity.ok().body(ApiResponseDto.success(new AvailabilityResponseDto(true)));
+        try {
+            AvailabilityResponseDto availabilityResponseDto = this.userService.checkValidityPassword(passwordCheckRequestDto.getPassword());
+            return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponseDto.error("Internal server error occurred"));
         }
-        return ResponseEntity.ok().body(ApiResponseDto.success(new AvailabilityResponseDto(false)));
     }
 }
