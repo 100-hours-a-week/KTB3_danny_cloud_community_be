@@ -6,8 +6,10 @@ import com.ktb.community.dto.response.ApiResponseDto;
 import com.ktb.community.dto.response.CreateUserResponseDto;
 import com.ktb.community.dto.response.LoginResponseDto;
 import com.ktb.community.service.AuthService;
+import com.ktb.community.service.RefreshTokenService;
 import com.ktb.community.service.UserService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,19 +19,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final UserService userService;
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${jwt.expiration.refresh}")
     private long refreshTokenExpiration;
 
     @Autowired
-    public AuthController(UserService userService, AuthService authService) {
+    public AuthController(UserService userService, AuthService authService, RefreshTokenService refreshTokenService) {
         this.userService = userService;
         this.authService = authService;
+        this.refreshTokenService = refreshTokenService;
     }
 
 
@@ -60,7 +66,7 @@ public class AuthController {
             LoginResponseDto loginResponse = this.authService.login(loginRequestDto);
 
             // Refresh Token을 HttpOnly 쿠키로 설정
-            Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
+            Cookie refreshTokenCookie = new Cookie("refresh_token", loginResponse.getRefreshToken());
             refreshTokenCookie.setHttpOnly(true);
             refreshTokenCookie.setSecure(false);
             refreshTokenCookie.setPath("/");
@@ -83,7 +89,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponseDto<?>> logout(HttpServletResponse response) {
         // Refresh Token 쿠키 삭제 (MaxAge를 0으로 설정)
-        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        Cookie refreshTokenCookie = new Cookie("refresh_token", null);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
@@ -93,8 +99,32 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponseDto.success("Logout successful"));
     }
 
-//    @GetMapping("/refresh")
-//    public ResponseEntity<ApiResponseDto<?>> refresh(@RequestHeader("Authorization") String refreshToken){
-//        System.out.println();
-//    }
+    // 리프레시 토큰을 재갱신
+    @GetMapping("/refresh")
+    public ResponseEntity<ApiResponseDto<?>> refresh(
+            @CookieValue("refresh_token") String refreshToken,
+            HttpServletResponse response) {
+        try {
+            // 새 refresh token 받아오기
+            var reIssued = this.refreshTokenService.reIssueRefreshToken(refreshToken);
+
+            // 새 refresh token을 쿠키에 설정
+            Cookie newRefreshTokenCookie = new Cookie("refresh_token", reIssued.getRefreshToken());
+            newRefreshTokenCookie.setHttpOnly(true);
+            newRefreshTokenCookie.setSecure(false);
+            newRefreshTokenCookie.setPath("/");
+            newRefreshTokenCookie.setMaxAge((int) (refreshTokenExpiration / 1000));
+            response.addCookie(newRefreshTokenCookie);
+
+            // 새 access token도 함께 발급
+            String newAccessToken = this.refreshTokenService.reIssueAccessToken(reIssued.getRefreshToken());
+
+            return ResponseEntity.ok().body(ApiResponseDto.success(
+                new LoginResponseDto(newAccessToken, null, null)
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponseDto.error("Invalid refresh token"));
+        }
+    }
 }
