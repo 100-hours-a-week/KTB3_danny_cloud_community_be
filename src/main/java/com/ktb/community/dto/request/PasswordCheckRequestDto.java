@@ -8,7 +8,6 @@ import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class PasswordCheckRequestDto {
