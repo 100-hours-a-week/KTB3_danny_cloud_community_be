@@ -38,13 +38,7 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             // 모든 필드를 확인하는 로직이 너무 길어 하나로 통합해서 유효하지 않은 필드를 가졌음을 표현
             String message = "Not valid form";
-
             return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
-        }
-
-        // 비밀번호와 비밀번호 확인이 동일한지 검사
-        if (!signUpRequestDto.getPassword().equals(signUpRequestDto.getPasswordConfirm())) {
-            return ResponseEntity.badRequest().body(ApiResponseDto.error("Password do not match"));
         }
 
         try {
