@@ -11,6 +11,6 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PasswordCheckRequestDto {
-    @NotBlank(message = "Please enter the password")
+    @NotBlank(message = "비밀번호를 입력해주세요.")
     private String password;
 }

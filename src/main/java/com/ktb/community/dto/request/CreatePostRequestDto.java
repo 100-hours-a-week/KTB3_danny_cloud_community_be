@@ -10,9 +10,9 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class CreatePostRequestDto {
-    @NotBlank
+    @NotBlank(message = "제목은 필수 입력 입니다.")
     String title;
-    @NotBlank
+    @NotBlank(message = "내용은 필수 입력입니다.")
     String content;
 
     List<String> images = new ArrayList<>();

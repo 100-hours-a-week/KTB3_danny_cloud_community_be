@@ -1,4 +1,4 @@
 package com.ktb.community.service;
 
-public class CommentServcie {
+public class CommentService {
 }

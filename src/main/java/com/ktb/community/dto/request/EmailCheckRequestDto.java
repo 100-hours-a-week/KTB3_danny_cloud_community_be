@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmailCheckRequestDto {
-    @NotBlank(message = "Please enter the email")
-    @Email(message = "Not valid form")
+    @NotBlank(message = "이메일을 입력해주세요.")
+    @Email(message = "유효하지 않은 이메일형식입니다.")
     private String email;
 }
