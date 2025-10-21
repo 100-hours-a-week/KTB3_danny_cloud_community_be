@@ -73,6 +73,16 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<ApiResponseDto<?>> handleCommentNotFoundException(CommentNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseDto.error(e.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponseDto<?>> handleUnauthorizedException(UnauthorizedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseDto.error(e.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDto<?>> handleGeneralException(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseDto.error("A temporary error has occurred. Please try again later."));
