@@ -11,7 +11,9 @@ import com.ktb.community.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -66,12 +68,27 @@ public class RefreshTokenService {
     @Transactional
     public ReIssueRefreshTokenDto reIssueRefreshToken(String refreshToken) {
 
+        // 존재하지 않는 다면 유효하지 않은 토큰
         if (!this.existByToken(refreshToken)) {
             throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
-        Refresh refresh = checkExistRefreshToken(refreshToken);
+        LocalDateTime date1 = this.jwtUtil.getExpirationFromToken(refreshToken).truncatedTo(ChronoUnit.DAYS);
 
+        if (date1.isBefore(LocalDateTime.now())){
+            throw new InvalidRefreshTokenException("Invalid refresh token");
+        }
+
+        LocalDateTime date2 = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        Duration diff = Duration.between(date2, date1);
+        long remainingDays = diff.toDays();
+        // refresh Token이 30%보다 많이 남았다면
+        if (remainingDays > 3){
+            return new ReIssueRefreshTokenDto(refreshToken);
+        }
+
+        // 3일 이하 남았으면 재발급
+        Refresh refresh = checkExistRefreshToken(refreshToken);
         String newRefreshToken = this.jwtUtil.generateRefreshToken(refresh.getUser().getId());
         User user = this.userRepository.findById(refresh.getUser().getId()).orElseThrow(() -> new UserNotFoundException("User not found"));
         LocalDateTime expiredAt = this.jwtUtil.getExpirationFromToken(newRefreshToken);
