@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(indexes = {
+    @Index(name = "idx_comment_post_id", columnList = "post_id"),
+})
 public class Comment {
     @Id
     @Column(name = "comment_id")

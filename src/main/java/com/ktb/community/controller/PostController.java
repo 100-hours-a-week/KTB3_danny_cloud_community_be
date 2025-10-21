@@ -9,7 +9,6 @@ import com.ktb.community.service.CommentService;
 import com.ktb.community.service.PostService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -50,15 +49,23 @@ public class PostController {
     }
 
     @PostMapping()
-    public ResponseEntity<ApiResponseDto<CreatePostResponseDto>> createPost(@RequestBody @Valid CreatePostRequestDto createPostRequestDto, Authentication authentication) {
-        CreatePostResponseDto createPostResponseDto = this.postService.createPost(createPostRequestDto, authentication.getName());
-        return ResponseEntity.ok().body(ApiResponseDto.success(createPostResponseDto));
+    public ResponseEntity<ApiResponseDto<CrudPostResponseDto>> createPost(@RequestBody @Valid CreatePostRequestDto createPostRequestDto, Authentication authentication) {
+        CrudPostResponseDto crudPostResponseDto = this.postService.createPost(createPostRequestDto, authentication.getName());
+        return ResponseEntity.ok().body(ApiResponseDto.success(crudPostResponseDto));
     }
 
     @PatchMapping("/{postId}")
-    public ResponseEntity<ApiResponseDto<?>> modifyPost(@PathVariable Long postId, @RequestBody ModifyPostRequestDto modifyPostRequestDto) {
-        CreatePostResponseDto modifiedPost = this.postService.modifyPostContent(postId, modifyPostRequestDto);
+    public ResponseEntity<ApiResponseDto<?>> modifyPost(@PathVariable Long postId, @RequestBody ModifyPostRequestDto modifyPostRequestDto, @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+        CrudPostResponseDto modifiedPost = this.postService.modifyPostContent(postId, token, modifyPostRequestDto);
         return ResponseEntity.ok().body(ApiResponseDto.success(modifiedPost));
+    }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<ApiResponseDto<?>> deletePost(@PathVariable Long postId, @RequestHeader("Authorization") String authHeader){
+        String token = authHeader.substring(7);
+        CrudPostResponseDto crudPostResponseDto = this.postService.removePost(postId, token);
+        return ResponseEntity.ok().body(ApiResponseDto.success(crudPostResponseDto));
     }
 
     @PostMapping("/{postId}/comments")
@@ -76,5 +83,6 @@ public class PostController {
         UpdateCommentResponseDto updateCommentResponseDto = this.commentService.modifyComment(token, updateCommentRequestDto);
         return ResponseEntity.ok().body(ApiResponseDto.success(updateCommentResponseDto));
     }
+
 
 }

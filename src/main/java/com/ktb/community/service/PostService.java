@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class PostService {
     }
 
     @Transactional
-    public CreatePostResponseDto createPost(CreatePostRequestDto createPostRequestDto, String email) {
+    public CrudPostResponseDto createPost(CreatePostRequestDto createPostRequestDto, String email) {
         Post post = new Post();
         post.setTitle(createPostRequestDto.getTitle());
         post.setContent(createPostRequestDto.getContent());
@@ -61,7 +62,7 @@ public class PostService {
             this.imageRepository.saveAll(images);
         }
 
-        return new CreatePostResponseDto(savedPost.getId());
+        return new CrudPostResponseDto(savedPost.getId());
     }
 
     public CursorPageResponseDto<PostResponseDto> getPostList(Long cursor, int size) {
@@ -158,7 +159,7 @@ public class PostService {
     }
 
     @Transactional
-    public CreatePostResponseDto modifyPostContent(Long postId, String token, ModifyPostRequestDto modifyPostRequestDto) {
+    public CrudPostResponseDto modifyPostContent(Long postId, String token, ModifyPostRequestDto modifyPostRequestDto) {
         // JWT에서 userId 추출
         Long userId = this.jwtUtil.extractUserIdFromToken(token);
 
@@ -184,7 +185,29 @@ public class PostService {
         // }
 
         // @Transactional에 의해 자동으로 UPDATE 쿼리 실행 (Dirty Checking)
-        return new CreatePostResponseDto(post.getId());
+        return new CrudPostResponseDto(post.getId());
+    }
+
+    @Transactional
+    public CrudPostResponseDto removePost(Long postId, String token) {
+        Long userId = this.jwtUtil.extractUserIdFromToken(token);
+        Post post = this.postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException("Post not found"));
+        if (!userId.equals(post.getUser().getId())) {
+            throw new UnauthorizedException("You are not authorized to delete this post");
+        }
+
+        // post를 soft delete
+        post.setDeletedAt(LocalDateTime.now());
+
+        // 연관된 댓글들도 soft delete
+        List<Comment> comments = this.commentRepository.findByPostId(postId);
+        comments.forEach(comment -> comment.setDeletedAt(LocalDateTime.now()));
+
+        // TODO : 이미지 로직 추가되면 삭제도 생각하기
+
+
+        return new CrudPostResponseDto(postId);
     }
 }
 
