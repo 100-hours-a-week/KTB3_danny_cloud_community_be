@@ -102,4 +102,9 @@ public class JwtUtil {
         Date expiration = claims.getExpiration();
         return expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
+
+    public Long extractUserIdFromToken(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(this.key).build().parseClaimsJws(token).getBody();
+        return Long.parseLong(claims.getSubject());
+    }
 }

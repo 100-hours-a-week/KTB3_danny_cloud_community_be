@@ -1,8 +1,10 @@
 package com.ktb.community.controller;
 
+import com.ktb.community.dto.request.CreateCommentRequestDto;
 import com.ktb.community.dto.request.CreatePostRequestDto;
 import com.ktb.community.dto.request.ModifyPostRequestDto;
 import com.ktb.community.dto.response.*;
+import com.ktb.community.service.CommentService;
 import com.ktb.community.service.PostService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -15,10 +17,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/posts")
 public class PostController {
     private final PostService postService;
+    private final CommentService commentService;
 
     @Autowired
-    public PostController(PostService postService) {
+    public PostController(PostService postService, CommentService commentService) {
         this.postService = postService;
+        this.commentService = commentService;
     }
 
     @GetMapping()
@@ -53,6 +57,14 @@ public class PostController {
     public ResponseEntity<ApiResponseDto<?>> modifyPost(@PathVariable Long postId, @RequestBody ModifyPostRequestDto modifyPostRequestDto) {
         CreatePostResponseDto modifiedPost = this.postService.modifyPostContent(postId, modifyPostRequestDto);
         return ResponseEntity.ok().body(ApiResponseDto.success(modifiedPost));
+    }
+
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<ApiResponseDto<?>> createComment(@PathVariable Long postId, @RequestBody @Valid CreateCommentRequestDto createCommentRequestDto, @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+
+        CreateCommentResponseDto createCommentResponseDto = this.commentService.writeComment(postId,token , createCommentRequestDto);
+        return ResponseEntity.ok().body(ApiResponseDto.success(createCommentResponseDto));
     }
 
 

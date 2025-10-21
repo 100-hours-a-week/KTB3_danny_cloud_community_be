@@ -88,9 +88,9 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponseDto.success("Logout successful"));
     }
 
-    // 리프레시 토큰을 재갱신
-    @GetMapping("/refresh")
-    public ResponseEntity<ApiResponseDto<?>> refresh(
+    // AccessToken 재발급 (RefreshToken도 필요시 갱신)
+    @PostMapping("/refresh-access-token")
+    public ResponseEntity<ApiResponseDto<?>> refreshAccessToken(
             @CookieValue("refresh_token") String refreshToken,
             HttpServletResponse response) {
         // 새 refresh token 받아오기

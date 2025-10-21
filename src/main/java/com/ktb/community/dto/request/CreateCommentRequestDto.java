@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateCommentRequestDto {
-    @NotNull(message = "게시글 ID를 입력해주세요")
-    public Long postId;
     @NotBlank(message = "내용을 입력해주세요")
     public String content;
 }
