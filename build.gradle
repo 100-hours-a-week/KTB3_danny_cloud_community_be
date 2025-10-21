@@ -42,6 +42,17 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+    // JUnit 라이브러리
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
+    // 테스트 코드의 가독성을 높여주는 메소드를 위한 라이브러리
+    testImplementation("org.assertj:assertj-core")
+
+    // 테스트에 필요한 Mock 객체 생성을 위한 라이브러리
+    testImplementation("org.mockito:mockito-core")
+    testImplementation("org.mockito:mockito-junit-jupiter")
 }
 
 tasks.named('test') {
