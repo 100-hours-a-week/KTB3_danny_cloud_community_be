@@ -2,8 +2,7 @@ package com.ktb.community.service;
 
 import com.ktb.community.dto.request.CreateCommentRequestDto;
 import com.ktb.community.dto.request.UpdateCommentRequestDto;
-import com.ktb.community.dto.response.CreateCommentResponseDto;
-import com.ktb.community.dto.response.UpdateCommentResponseDto;
+import com.ktb.community.dto.response.CrudCommentResponseDto;
 import com.ktb.community.entity.Comment;
 import com.ktb.community.entity.Post;
 import com.ktb.community.entity.User;
@@ -16,7 +15,6 @@ import com.ktb.community.repository.CommentRepository;
 import com.ktb.community.repository.PostRepository;
 import com.ktb.community.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 
@@ -35,7 +33,7 @@ public class CommentService {
     }
 
     @Transactional
-    public CreateCommentResponseDto writeComment(Long postId, String token, CreateCommentRequestDto createCommentRequestDto) {
+    public CrudCommentResponseDto writeComment(Long postId, String token, CreateCommentRequestDto createCommentRequestDto) {
         Long userId = this.jwtUtil.extractUserIdFromToken(token);
         Post post = this.postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException("Not found post"));
@@ -49,20 +47,38 @@ public class CommentService {
 
 
         Comment savedComment = this.commentRepository.save(comment);
-        return new CreateCommentResponseDto(savedComment.getId());
+        return new CrudCommentResponseDto(savedComment.getId());
     }
 
-    public UpdateCommentResponseDto modifyComment(String token, UpdateCommentRequestDto updateCommentRequestDto) {
+    @Transactional
+    public CrudCommentResponseDto modifyComment(String token, UpdateCommentRequestDto updateCommentRequestDto) {
         Long userId = this.jwtUtil.extractUserIdFromToken(token);
         // 작성자가 맞는지부터확인
-        Comment comment = this.commentRepository.findById(updateCommentRequestDto.getCommentId()).orElseThrow(() -> new CommentNotFoundException("Not found comment"));
+        Comment comment = this.commentRepository.findById(updateCommentRequestDto.getCommentId())
+                .orElseThrow(() -> new CommentNotFoundException("Not found comment"));
 
         if (!userId.equals(comment.getUser().getId())) {
             throw new UnauthorizedException("You are not authorized to modify this comment");
         }
 
         comment.setContent(updateCommentRequestDto.getContent());
-        Comment modifiedComment = this.commentRepository.save(comment);
-        return new UpdateCommentResponseDto(modifiedComment.getId());
+        // @Transactional에 의해 자동으로 UPDATE 쿼리 실행 (Dirty Checking)
+        return new CrudCommentResponseDto(comment.getId());
+    }
+
+    @Transactional
+    public CrudCommentResponseDto removeComment(Long commentId, String token) {
+        Long userId = this.jwtUtil.extractUserIdFromToken(token);
+        Comment comment = this.commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentNotFoundException("Not found comment"));
+
+        if (!userId.equals(comment.getUser().getId())) {
+            throw new UnauthorizedException("You are not authorized to delete this comment");
+        }
+
+        comment.setDeletedAt(java.time.LocalDateTime.now());
+        // @Transactional에 의해 자동으로 UPDATE 쿼리 실행 (Dirty Checking)
+
+        return new CrudCommentResponseDto(commentId);
     }
 }

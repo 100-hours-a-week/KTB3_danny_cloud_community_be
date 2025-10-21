@@ -62,7 +62,7 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<ApiResponseDto<?>> deletePost(@PathVariable Long postId, @RequestHeader("Authorization") String authHeader){
+    public ResponseEntity<ApiResponseDto<?>> deletePost(@PathVariable Long postId, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
         CrudPostResponseDto crudPostResponseDto = this.postService.removePost(postId, token);
         return ResponseEntity.ok().body(ApiResponseDto.success(crudPostResponseDto));
@@ -72,16 +72,25 @@ public class PostController {
     public ResponseEntity<ApiResponseDto<?>> createComment(@PathVariable Long postId, @RequestBody @Valid CreateCommentRequestDto createCommentRequestDto, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
 
-        CreateCommentResponseDto createCommentResponseDto = this.commentService.writeComment(postId, token, createCommentRequestDto);
-        return ResponseEntity.ok().body(ApiResponseDto.success(createCommentResponseDto));
+        CrudCommentResponseDto crudCommentResponseDto = this.commentService.writeComment(postId, token, createCommentRequestDto);
+        return ResponseEntity.ok().body(ApiResponseDto.success(crudCommentResponseDto));
     }
 
     @PatchMapping("/{postId}/comments")
     public ResponseEntity<ApiResponseDto<?>> updateComment(@PathVariable Long postId, @RequestBody @Valid UpdateCommentRequestDto updateCommentRequestDto, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
 
-        UpdateCommentResponseDto updateCommentResponseDto = this.commentService.modifyComment(token, updateCommentRequestDto);
+        CrudCommentResponseDto updateCommentResponseDto = this.commentService.modifyComment(token, updateCommentRequestDto);
         return ResponseEntity.ok().body(ApiResponseDto.success(updateCommentResponseDto));
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponseDto<?>> deleteComment(@PathVariable Long commentId, @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+
+        CrudCommentResponseDto deletedCommentResponseDto = this.commentService.removeComment(commentId, token);
+
+        return ResponseEntity.ok().body(ApiResponseDto.success(deletedCommentResponseDto));
     }
 
 
