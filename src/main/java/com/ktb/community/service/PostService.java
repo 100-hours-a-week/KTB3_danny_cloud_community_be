@@ -5,6 +5,8 @@ import com.ktb.community.dto.request.ModifyPostRequestDto;
 import com.ktb.community.dto.response.*;
 import com.ktb.community.entity.*;
 import com.ktb.community.exception.custom.PostNotFoundException;
+import com.ktb.community.exception.custom.UnauthorizedException;
+import com.ktb.community.jwt.JwtUtil;
 import com.ktb.community.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -24,14 +26,16 @@ public class PostService {
     private final ImageRepository imageRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public PostService(PostRepository postRepository, CountRepository countRepository, ImageRepository imageRepository, CommentRepository commentRepository, UserRepository userRepository) {
+    public PostService(PostRepository postRepository, CountRepository countRepository, ImageRepository imageRepository, CommentRepository commentRepository, UserRepository userRepository, JwtUtil jwtUtil) {
         this.postRepository = postRepository;
         this.countRepository = countRepository;
         this.imageRepository = imageRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @Transactional
@@ -154,9 +158,17 @@ public class PostService {
     }
 
     @Transactional
-    public CreatePostResponseDto modifyPostContent(Long postId, ModifyPostRequestDto modifyPostRequestDto) {
+    public CreatePostResponseDto modifyPostContent(Long postId, String token, ModifyPostRequestDto modifyPostRequestDto) {
+        // JWT에서 userId 추출
+        Long userId = this.jwtUtil.extractUserIdFromToken(token);
+
         Post post = this.postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException("Post not found"));
+
+        // 작성자 확인
+        if (!userId.equals(post.getUser().getId())) {
+            throw new UnauthorizedException("You are not authorized to modify this post");
+        }
 
         // null이 아닌 필드만 업데이트
         if (modifyPostRequestDto.getTitle() != null) {
