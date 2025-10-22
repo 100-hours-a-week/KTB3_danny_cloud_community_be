@@ -3,13 +3,12 @@ package com.ktb.community.controller;
 import com.ktb.community.dto.request.LoginRequestDto;
 import com.ktb.community.dto.request.SignUpRequestDto;
 import com.ktb.community.dto.response.ApiResponseDto;
-import com.ktb.community.dto.response.CreateUserResponseDto;
+import com.ktb.community.dto.response.CrudUserResponseDto;
 import com.ktb.community.dto.response.LoginResponseDto;
 import com.ktb.community.service.AuthService;
 import com.ktb.community.service.RefreshTokenService;
 import com.ktb.community.service.UserService;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Arrays;
 
 @RestController
 @RequestMapping("/auth")
@@ -48,7 +45,7 @@ public class AuthController {
         }
 
         Long userId = this.authService.signUpUser(signUpRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(new CreateUserResponseDto(userId)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(new CrudUserResponseDto(userId)));
     }
 
     @PostMapping("/login")
