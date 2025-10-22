@@ -4,11 +4,13 @@ import com.ktb.community.dto.request.EmailCheckRequestDto;
 import com.ktb.community.dto.request.PasswordCheckRequestDto;
 import com.ktb.community.dto.response.ApiResponseDto;
 import com.ktb.community.dto.response.AvailabilityResponseDto;
+import com.ktb.community.dto.response.UserInfoResponseDto;
 import com.ktb.community.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,5 +50,14 @@ public class UserController {
 
         AvailabilityResponseDto availabilityResponseDto = this.userService.checkValidityPassword(passwordCheckRequestDto.getPassword());
         return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponseDto<?>> getMyInformation(Authentication authentication) {
+        String email = authentication.getName();
+
+        UserInfoResponseDto userInfoResponseDto = this.userService.readMyInfo(email);
+        return ResponseEntity.ok().body(ApiResponseDto.success(userInfoResponseDto));
+
     }
 }
