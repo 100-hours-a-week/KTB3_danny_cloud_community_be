@@ -114,4 +114,11 @@ public class RefreshTokenService {
         List<Refresh> expiredTokens = tokens.stream().filter((token) -> token.getExpirationAt().isBefore(LocalDateTime.now())).toList();
         this.refreshRepository.deleteAll(expiredTokens);
     }
+
+    public int calculateRemainingSeconds(String refreshToken) {
+        LocalDateTime expirationAt = this.jwtUtil.getExpirationFromToken(refreshToken);
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(now, expirationAt);
+        return (int) duration.getSeconds();
+    }
 }
