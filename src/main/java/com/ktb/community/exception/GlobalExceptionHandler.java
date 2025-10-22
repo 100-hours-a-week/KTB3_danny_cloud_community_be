@@ -107,6 +107,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(ApiResponseDto.error(e.getMessage()));
     }
 
+    @ExceptionHandler(InvalidNicknameException.class)
+    public ResponseEntity<ApiResponseDto<?>> handleInvalidNicknameException(InvalidNicknameException e) {
+        System.err.println("[InvalidNicknameException] " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseDto.error(e.getMessage()));
+    }
+
+    @ExceptionHandler(DuplicateNicknameException.class)
+    public ResponseEntity<ApiResponseDto<?>> handleDuplicateNicknameException(DuplicateNicknameException e) {
+        System.err.println("[DuplicateNicknameException] " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseDto.error(e.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDto<?>> handleGeneralException(Exception e) {
         System.err.println("=== Unexpected Exception Occurred ===");

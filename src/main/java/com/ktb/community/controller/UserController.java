@@ -1,9 +1,11 @@
 package com.ktb.community.controller;
 
 import com.ktb.community.dto.request.EmailCheckRequestDto;
+import com.ktb.community.dto.request.ModifyNicknameRequestDto;
 import com.ktb.community.dto.request.PasswordCheckRequestDto;
 import com.ktb.community.dto.response.ApiResponseDto;
 import com.ktb.community.dto.response.AvailabilityResponseDto;
+import com.ktb.community.dto.response.CrudUserResponseDto;
 import com.ktb.community.dto.response.UserInfoResponseDto;
 import com.ktb.community.service.UserService;
 import jakarta.validation.Valid;
@@ -58,6 +60,17 @@ public class UserController {
 
         UserInfoResponseDto userInfoResponseDto = this.userService.readMyInfo(email);
         return ResponseEntity.ok().body(ApiResponseDto.success(userInfoResponseDto));
+
+    }
+
+    @PatchMapping("/nickname")
+    public ResponseEntity<ApiResponseDto<?>> patchNickname(
+            @RequestBody @Valid ModifyNicknameRequestDto modifyNicknameRequestDto,
+            Authentication authentication) {
+        String email = authentication.getName();
+        CrudUserResponseDto crudUserResponseDto = this.userService.changeNickname(email, modifyNicknameRequestDto);
+
+        return ResponseEntity.ok().body(ApiResponseDto.success(crudUserResponseDto));
 
     }
 }
