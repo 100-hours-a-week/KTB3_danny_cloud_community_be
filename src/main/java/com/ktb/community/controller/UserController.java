@@ -30,31 +30,23 @@ public class UserController {
         // 검증에서 문제가 발생했다면
         if (bindingResult.hasErrors()) {
             String message = (bindingResult.getFieldError("email") != null) ? bindingResult.getFieldError("email").getDefaultMessage() : "Not a valid request";
-
             return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
-
-        }
-        if (this.userService.checkDuplicateEmail(emailCheckDto.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponseDto.error("This email already exists. Please enter a different email.\""));
         }
 
-        return ResponseEntity.ok().body(ApiResponseDto.success(new AvailabilityResponseDto(true)));
+        AvailabilityResponseDto availabilityResponseDto = this.userService.checkDuplicateEmail(emailCheckDto.getEmail());
+        return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
     }
 
     @PostMapping("/password")
     ResponseEntity<ApiResponseDto<AvailabilityResponseDto>> checkValidityPassword(@RequestBody @Valid PasswordCheckRequestDto passwordCheckRequestDto, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             String message = (bindingResult.getFieldError("password") != null)
                     ? bindingResult.getFieldError("password").getDefaultMessage()
                     : "Not a valid request";
-
             return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
-
         }
 
-        if (this.userService.checkValidityPassword(passwordCheckRequestDto.getPassword())) {
-            return ResponseEntity.ok().body(ApiResponseDto.success(new AvailabilityResponseDto(true)));
-        }
-        return ResponseEntity.ok().body(ApiResponseDto.success(new AvailabilityResponseDto(false)));
+        AvailabilityResponseDto availabilityResponseDto = this.userService.checkValidityPassword(passwordCheckRequestDto.getPassword());
+        return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
     }
 }

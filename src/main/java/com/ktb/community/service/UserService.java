@@ -1,5 +1,6 @@
 package com.ktb.community.service;
 
+import com.ktb.community.dto.response.AvailabilityResponseDto;
 import com.ktb.community.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,13 +15,14 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public Boolean checkDuplicateEmail(String email) {
-        return this.userRepository.existsByEmail(email);
+    public AvailabilityResponseDto checkDuplicateEmail(String email) {
+        return new AvailabilityResponseDto(!this.userRepository.existsByEmail(email));
     }
 
-    public Boolean checkValidityPassword(String password) {
+    public AvailabilityResponseDto checkValidityPassword(String password) {
         // 최소 8자, 소문자 1개 이상, 숫자 1개 이상, 특수문자 1개 이상
         String regex = "^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$";
-        return password.matches(regex);
+        boolean isValid = password.matches(regex);
+        return new AvailabilityResponseDto(isValid);
     }
 }

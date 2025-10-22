@@ -13,4 +13,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByDeletedAtIsNullOrderByCreatedAtDesc(Pageable pageable);
 
     List<Post> findByIdLessThanAndDeletedAtIsNullOrderByCreatedAtDesc(Long cursor, Pageable pageable);
+
 }

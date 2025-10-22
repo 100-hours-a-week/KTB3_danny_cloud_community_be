@@ -14,4 +14,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findByPostIdAndIdLessThanAndDeletedAtIsNullOrderByCreatedAtDesc(
             Long postId, Long cursor, Pageable pageable);
+
+    List<Comment> findByPostId(Long postId);
 }
