@@ -67,7 +67,6 @@ public class RefreshTokenService {
     // 무조건 refresh token을 재갱신 해주기
     @Transactional
     public ReIssueRefreshTokenDto reIssueRefreshToken(String refreshToken) {
-        System.out.println("ㄱㄷㄱㄷㄱㄷㄱㄷ");;
         // 존재하지 않는 다면 유효하지 않은 토큰
         if (!this.existByToken(refreshToken)) {
             throw new InvalidRefreshTokenException("Invalid refresh token");
