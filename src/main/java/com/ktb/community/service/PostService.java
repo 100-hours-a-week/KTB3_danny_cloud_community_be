@@ -62,6 +62,13 @@ public class PostService {
             this.imageRepository.saveAll(images);
         }
 
+        Count count = new Count();
+        count.setPost(savedPost);  // Post 설정 필수!
+        count.setLikeCount(0L);
+        count.setCommentCount(0L);
+        count.setViewCount(0L);
+        this.countRepository.save(count);
+
         return new CrudPostResponseDto(savedPost.getId());
     }
 
@@ -204,7 +211,7 @@ public class PostService {
         List<Comment> comments = this.commentRepository.findByPostId(postId);
         comments.forEach(comment -> comment.setDeletedAt(LocalDateTime.now()));
 
-        // TODO : 이미지 로직 추가되면 삭제도 생각하기
+        // TODO : 이미지 로직 추가되면 이미지 삭제로직 추가하기
 
 
         return new CrudPostResponseDto(postId);

@@ -6,6 +6,7 @@ import com.ktb.community.dto.request.ModifyPostRequestDto;
 import com.ktb.community.dto.request.UpdateCommentRequestDto;
 import com.ktb.community.dto.response.*;
 import com.ktb.community.service.CommentService;
+import com.ktb.community.service.LikeService;
 import com.ktb.community.service.PostService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -19,11 +20,13 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     private final PostService postService;
     private final CommentService commentService;
+    private final LikeService likeService;
 
     @Autowired
-    public PostController(PostService postService, CommentService commentService) {
+    public PostController(PostService postService, CommentService commentService, LikeService likeService) {
         this.postService = postService;
         this.commentService = commentService;
+        this.likeService = likeService;
     }
 
     @GetMapping()
@@ -93,5 +96,20 @@ public class PostController {
         return ResponseEntity.ok().body(ApiResponseDto.success(deletedCommentResponseDto));
     }
 
+    @PostMapping("/{postId}/likes")
+    public ResponseEntity<ApiResponseDto<?>> createLike(@PathVariable Long postId, @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+
+        LikeResponseDto likeResponseDto = this.likeService.likePost(postId, token);
+        return ResponseEntity.ok().body(ApiResponseDto.success(likeResponseDto));
+    }
+
+    @DeleteMapping("/{postId}/likes")
+    public ResponseEntity<ApiResponseDto<?>> deleteLike(@PathVariable Long postId, @RequestHeader("Authorization") String authHeader){
+        String token = authHeader.substring(7);
+
+        LikeResponseDto likeResponseDto = this.likeService.unLikePost(postId, token);
+        return ResponseEntity.ok().body(ApiResponseDto.success(likeResponseDto));
+    }
 
 }

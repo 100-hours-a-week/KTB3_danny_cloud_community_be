@@ -20,7 +20,13 @@ public class Count {
     @JoinColumn(name = "post_id")
     private Post post;
 
-    private Long likeCount;
-    private Long viewCount;
-    private Long commentCount;
+    @Column(nullable = false)
+    private Long likeCount = 0L;
+
+    @Column(nullable = false)
+    private Long viewCount = 0L;
+
+    @Column(nullable = false)
+    private Long commentCount = 0L;
+
 }
