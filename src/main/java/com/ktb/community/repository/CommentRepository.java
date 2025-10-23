@@ -2,6 +2,7 @@ package com.ktb.community.repository;
 
 import com.ktb.community.entity.Comment;
 import com.ktb.community.entity.Post;
+import com.ktb.community.entity.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             Long postId, Long cursor, Pageable pageable);
 
     List<Comment> findByPostId(Long postId);
+
+    List<Comment> findByUser(User user);
+
+    List<Comment> findByPostIn(List<Post> postList);
 }
