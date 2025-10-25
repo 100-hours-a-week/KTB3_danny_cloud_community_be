@@ -79,5 +79,6 @@ public class UserController {
         String email = authentication.getName();
         //TODO : 삭제 로직 구현하기
         this.userService.removeUser(email);
+        return ResponseEntity.ok().body(ApiResponseDto.success("test중"));
     }
 }
