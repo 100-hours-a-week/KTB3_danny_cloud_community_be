@@ -1,8 +1,10 @@
 package com.ktb.community.controller;
 
+import com.ktb.community.dto.request.ChangePasswordRequestDto;
 import com.ktb.community.dto.request.EmailCheckRequestDto;
 import com.ktb.community.dto.request.ModifyNicknameRequestDto;
 import com.ktb.community.dto.request.PasswordCheckRequestDto;
+import com.ktb.community.dto.request.UpdateProfileImageRequestDto;
 import com.ktb.community.dto.response.ApiResponseDto;
 import com.ktb.community.dto.response.AvailabilityResponseDto;
 import com.ktb.community.dto.response.CrudUserResponseDto;
@@ -41,6 +43,7 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
     }
 
+
     @PostMapping("/password")
     ResponseEntity<ApiResponseDto<AvailabilityResponseDto>> checkValidityPassword(@RequestBody @Valid PasswordCheckRequestDto passwordCheckRequestDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -52,6 +55,24 @@ public class UserController {
 
         AvailabilityResponseDto availabilityResponseDto = this.userService.checkValidityPassword(passwordCheckRequestDto.getPassword());
         return ResponseEntity.ok().body(ApiResponseDto.success(availabilityResponseDto));
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<ApiResponseDto<?>> changePassword(
+            @RequestBody @Valid ChangePasswordRequestDto changePasswordRequestDto,
+            BindingResult bindingResult,
+            Authentication authentication) {
+        if (bindingResult.hasErrors()) {
+            String message = bindingResult.getFieldError() != null
+                    ? bindingResult.getFieldError().getDefaultMessage()
+                    : "Not a valid request";
+            return ResponseEntity.badRequest().body(ApiResponseDto.error(message));
+        }
+
+        String email = authentication.getName();
+        CrudUserResponseDto crudUserResponseDto = this.userService.changePassword(email, changePasswordRequestDto);
+
+        return ResponseEntity.ok().body(ApiResponseDto.success(crudUserResponseDto));
     }
 
     @GetMapping("/me")
@@ -80,5 +101,24 @@ public class UserController {
         //TODO : 삭제 로직 구현하기
         this.userService.removeUser(email);
         return ResponseEntity.ok().body(ApiResponseDto.success("test중"));
+    }
+
+    @PatchMapping("/profile-image")
+    public ResponseEntity<ApiResponseDto<CrudUserResponseDto>> updateProfileImage(
+            @RequestBody @Valid UpdateProfileImageRequestDto dto,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        CrudUserResponseDto response = userService.updateProfileImage(email, dto.getImageKey());
+        return ResponseEntity.ok(ApiResponseDto.success(response));
+    }
+
+    @DeleteMapping("/profile-image")
+    public ResponseEntity<ApiResponseDto<CrudUserResponseDto>> deleteProfileImage(
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        CrudUserResponseDto response = userService.deleteProfileImage(email);
+        return ResponseEntity.ok(ApiResponseDto.success(response));
     }
 }

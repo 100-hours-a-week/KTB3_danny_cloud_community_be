@@ -18,6 +18,10 @@ public class PostDetailResponseDto {
     private String title;
     private String content;
     private String author;
+    @JsonProperty("is_mine")
+    private boolean isMine;
+    @JsonProperty("is_liked")
+    private boolean isLiked;
     private Long views;
     private Long comments;
     private Long likes;
